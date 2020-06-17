@@ -9,6 +9,21 @@ function EditTagsDialog({ dialog, tags, getAvailableTags }) {
   const [availableTags, setAvailableTags] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [values, setValues] = useState(() => uniq(map(tags, trim))); // lazy evaluate
+  const [selectRef, setSelectRef] = useState(null);
+
+  // For some reason `Select::autoFocus` doesn't work in dialogs.
+  // Workaround: get component's ref and manually pass focus
+  useEffect(() => {
+    if (selectRef) {
+      const timer = setTimeout(() => {
+        selectRef.focus();
+      }, 100);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [selectRef]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -31,12 +46,12 @@ function EditTagsDialog({ dialog, tags, getAvailableTags }) {
       className="shortModal"
       wrapProps={{ "data-test": "EditTagsDialog" }}>
       <Select
+        ref={setSelectRef}
         mode="tags"
         className="w-100"
         placeholder="Add some tags..."
         defaultValue={values}
         onChange={v => setValues(compact(map(v, trim)))}
-        autoFocus
         disabled={isLoading}
         loading={isLoading}>
         {map(availableTags, tag => (
